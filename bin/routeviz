@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+require 'open3'
+
+if ARGV.empty?
+  puts <<USAGE
+Usage: #$0 host [host]...
+USAGE
+  exit 1
+end
+
+routes = []
+ARGV.each do |host|
+  max_hops = 10
+  queries_per_hop = 1
+  command = "traceroute -n -q #{queries_per_hop} -m #{max_hops} #{host}"
+  route = []
+  IO.popen(command, 'r') do |cmd|
+    begin
+      while line = cmd.readline
+        route << line.strip.split(/\s+/)[1]
+        puts line
+      end
+    rescue EOFError
+    end
+  end
+  route << host
+  routes << route
+end
+
+puts routes.inspect
