@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'open3'
-require 'graphviz'
+require 'routeviz'
 
 if ARGV.empty?
   puts <<USAGE
@@ -10,61 +10,9 @@ USAGE
   exit 1
 end
 
-module Routeviz
-  class RouteGraph
-    def new_path host
-      Route.new(host).tap { |r| routes << r }
-    end
-
-    def routes
-      @routes ||= []
-    end
-
-    def each(&block)
-      routes.each(&block)
-    end
-  end
-
-  class Route < Array
-    def initialize destination
-      @destination = destination
-    end
-
-    attr_reader :destination
-
-    def inspect
-      "{route to #{destination}: #{super}"
-    end
-  end
-
-  class Pen
-    def initialize routes
-      @routes = routes
-    end
-
-    attr_reader :routes
-
-    def draw file
-      graph = GraphViz::new 'traceroute'
-      ip_nodes = Hash.new do |h,k|
-        h[k] = graph.add_node k, :label => k
-      end
-      routes.each do |route|
-        route.inject('127.0.0.1') do |last_ip, next_ip|
-          last_node = ip_nodes[last_ip]
-          next_node = ip_nodes[next_ip]
-          graph.add_edge last_node, next_node, :label => route.destination
-          next_ip
-        end
-      end
-      graph.output :png => file
-    end
-  end
-end
-
-routes = Routeviz::RouteGraph.new
+routes = []
 ARGV.each do |host|
-  route = routes.new_path host
+  routes << (route = Routeviz::Route.new host)
   max_hops = 50
   queries_per_hop = 1
   command = "traceroute -n -q #{queries_per_hop} -m #{max_hops} #{host}"

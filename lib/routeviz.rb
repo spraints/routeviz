@@ -1,3 +1,4 @@
 module Routeviz
-  # Your code goes here...
+  autoload 'Route', 'routeviz/route'
+  autoload 'Pen', 'routeviz/pen'
 end
