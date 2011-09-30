@@ -13,12 +13,11 @@ module Routeviz
         h[k] = graph.add_node k, :label => k
       end
       routes.each do |route|
-        route.inject('127.0.0.1') do |last_ip, next_ip|
-          last_node = ip_nodes[last_ip]
-          next_node = ip_nodes[next_ip]
-          graph.add_edge last_node, next_node, :label => route.destination
+        end_ip = route.inject('127.0.0.1') do |last_ip, next_ip|
+          graph.add_edge ip_nodes[last_ip], ip_nodes[next_ip]
           next_ip
         end
+        graph.add_edge ip_nodes[end_ip], ip_nodes[route.destination]
       end
       graph.output :png => file
     end
