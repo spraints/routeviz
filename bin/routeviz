@@ -9,12 +9,38 @@ USAGE
   exit 1
 end
 
-routes = []
+module Routeviz
+  class RouteGraph
+    def new_path host
+      Route.new(host).tap { |r| routes << r }
+    end
+
+    def routes
+      @routes ||= []
+    end
+  end
+
+  class Route < Array
+    def initialize host
+      @host = host
+    end
+
+    def host
+      @host
+    end
+
+    def inspect
+      "{route to #{host}: #{super}"
+    end
+  end
+end
+
+routes = Routeviz::RouteGraph.new
 ARGV.each do |host|
+  route = routes.new_path host
   max_hops = 10
   queries_per_hop = 1
   command = "traceroute -n -q #{queries_per_hop} -m #{max_hops} #{host}"
-  route = []
   IO.popen(command, 'r') do |cmd|
     begin
       while line = cmd.readline
@@ -24,8 +50,6 @@ ARGV.each do |host|
     rescue EOFError
     end
   end
-  route << host
-  routes << route
 end
 
 puts routes.inspect
